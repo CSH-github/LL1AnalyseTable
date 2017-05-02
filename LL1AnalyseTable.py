@@ -1,4 +1,3 @@
-#！ /etc/bin/env python
 
 # Author:    Wind-Wing
 # Time:     2017/04/30
@@ -8,10 +7,12 @@
 #         use non-Capital Letters as terminal
 #         use char "e" to represent "ε"
 # 2. Use char "S" to represent Start non-terminal for Getting FOLLOW set
-# 3. The output must have least than 26 non-terminals( for 26 Capital Letters )
+# 3. The output must have less than 26 non-terminals( for 26 Capital Letters )
 # 4. Please do not add unnecessary blanks
 # 5. Please ensure you use the right form to input productions
 # or you will get the wrong output
+
+import string
 
 def Getproductions():
     productions = {}
@@ -24,7 +25,7 @@ def Getproductions():
         inputSentence = input()
         if inputSentence == "q":
             break
-        productions[inputSentence.split("->")[0].strip()] = inputSentence.split("->")[1].strip().split("|")
+        productions[inputSentence.split("->")[0].strip()] = set(inputSentence.split("->")[1].strip().split("|"))
     return productions
 
 def DisplayProductions(productions):
@@ -52,11 +53,37 @@ def GetTerminals(productions):
 def EliminateLeftReduction(productions):
     pass
 
-def EliminateDirectLeftReduction(productions):
-    pass
+def EliminateDirectLeftReduction(nonTerminal,productions):
+    a = productions[nonTerminal]
+    # Find LeftReductions
+    leftReductions = set()
+    for i in a:
+        if i[0] == nonTerminal:
+            if len(i) > 1:
+                leftReductions.add(i)
+            else: raise Exception("Exist Loop production:\n"+str(productions[nonTerminal]))
+    # Check whether find LeftReductions
+    if not leftReductions:return
+    # Find a new nonTerminal
+    nonTerminals = GetNonTerminals(productions)
+    newNonTerminal = ""
+    for i in string.ascii_uppercase:
+        if i not in nonTerminals:
+            newNonTerminal = i
+    if not newNonTerminal:raise Exception("Too many nonTerminals")
+    # Change the origin production
+    a = a.difference(leftReductions)
+    productions[nonTerminal] = set([x+newNonTerminal for x in a])
+    # Create a new RightRecurse production
+    productions[newNonTerminal] = set()
+    for i in leftReductions:
+        productions[newNonTerminal].add(i[1:]+newNonTerminal)
+    productions[newNonTerminal].add("e")
 
 def ExtractLeftFactor(productions):
-    pass
+    for i in productions:
+        for j in productions[i]:
+            pass
 
 def GetFIRST(productions):
     FIRST = {}
