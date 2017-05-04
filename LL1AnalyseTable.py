@@ -13,6 +13,7 @@
 # or you will get the wrong output
 
 import string
+import copy
 
 def Getproductions():
     productions = {}
@@ -50,9 +51,34 @@ def GetTerminals(productions):
                     ReturnSet.add(k)
     return ReturnSet
 
-def EliminateLeftReduction(productions):
-    pass
+def GetNewNonTerminal(productions):
+    nonTerminals = GetNonTerminals(productions)
+    newNonTerminal = ""
+    for i in string.ascii_uppercase:
+        if i not in nonTerminals:
+            newNonTerminal = i
+            break
+    if not newNonTerminal: raise Exception("Too many nonTerminals")
+    return newNonTerminal
 
+def EliminateLeftReduction(productions):
+    NonTerminals = list(GetNonTerminals(productions))
+    n = 0
+    for i in NonTerminals:          # Item to be brought in
+        for j in NonTerminals[:n]:  # Item to brought in
+            # Copy
+            newSet = set(productions[i])
+            for k in productions[i]:
+                # Check whether can be brought in
+                if k[0] == j:
+                    newSet.update([ x+k[1:] for x in productions[j] ])
+                    if not ("e" in productions[j]):
+                        newSet.remove(k)
+            productions[i] = newSet
+            EliminateDirectLeftReduction(i,productions)
+        n += 1
+
+# This function is prepared for "EliminateLeftReduction"
 def EliminateDirectLeftReduction(nonTerminal,productions):
     a = productions[nonTerminal]
     # Find LeftReductions
@@ -65,12 +91,7 @@ def EliminateDirectLeftReduction(nonTerminal,productions):
     # Check whether find LeftReductions
     if not leftReductions:return
     # Find a new nonTerminal
-    nonTerminals = GetNonTerminals(productions)
-    newNonTerminal = ""
-    for i in string.ascii_uppercase:
-        if i not in nonTerminals:
-            newNonTerminal = i
-    if not newNonTerminal:raise Exception("Too many nonTerminals")
+    newNonTerminal = GetNewNonTerminal(productions)
     # Change the origin production
     a = a.difference(leftReductions)
     productions[nonTerminal] = set([x+newNonTerminal for x in a])
@@ -81,9 +102,38 @@ def EliminateDirectLeftReduction(nonTerminal,productions):
     productions[newNonTerminal].add("e")
 
 def ExtractLeftFactor(productions):
-    for i in productions:
-        for j in productions[i]:
-            pass
+    #productions = copy.deepcopy(productions)
+    nonTerminalSet = GetNonTerminals(productions)
+    for i in nonTerminalSet:
+        # Use loop to extra many levels of left common factors
+        stack = [i]
+        while stack:
+            # Init
+            count = {}
+            nonTerminal = stack.pop()
+            for j in productions[nonTerminal]:
+                count[j[0]] = set()
+            # Count
+            for j in productions[nonTerminal]:
+                count[j[0]].add(j)
+            # Check
+            if len(count) == len(productions[nonTerminal]):break
+            # Extra
+            Cflag = False
+            for j in count:
+                if len(count[j]) <= 1:continue
+                newNonTerminal = GetNewNonTerminal(productions)
+                productions[nonTerminal] = productions[nonTerminal].difference(count[j])
+                productions[nonTerminal].add(j+newNonTerminal)
+                newSet = set([x[1:] for x in count[j] if len(x) > 1])
+                if len(newSet) < len(count[j]):
+                    newSet.add("e")
+                productions[newNonTerminal] = newSet
+                Cflag = True
+                stack.append(newNonTerminal)
+            # Second check
+            if Cflag:
+                stack.append(nonTerminal)
 
 def GetFIRST(productions):
     FIRST = {}
@@ -214,17 +264,25 @@ def DisplayAnalyseTable(Table,Terminals):
 
         print()
 
+if __name__ == "__test__":
+    productions = Getproductions()
+    ExtractLeftFactor(productions)
+    DisplayProductions(productions)
+
+
 if __name__ == "__main__":
     choice = 0
     flag = False
-    while choice != '6':
+    while choice != '8':
         print()
         print("1.Input Productions")
         print("2.Show Productions")
-        print("3.Get FISRT Set")
-        print("4.Get FOLLOW Set")
-        print("5.Get Analyse Table")
-        print("6.Quit")
+        print("3.Eliminate Left Reduction")
+        print("4.Extra Left Common items")
+        print("5.Get FIRST Set")
+        print("6.Get FOLLOW Set")
+        print("7.Get Analyse Table")
+        print("8.Quit")
         print()
         choice = input("your choice:")
         if choice == '1':
@@ -240,10 +298,16 @@ if __name__ == "__main__":
         elif choice == '2':
             DisplayProductions(productions)
         elif choice == '3':
-            DisplayFIRST(FIRST)
+            EliminateLeftReduction(productions)
+            DisplayProductions(productions)
         elif choice == '4':
-            DisplayFOLLOW(FOLLOW)
+            ExtractLeftFactor(productions)
+            DisplayProductions(productions)
         elif choice == '5':
+            DisplayFIRST(FIRST)
+        elif choice == '6':
+            DisplayFOLLOW(FOLLOW)
+        elif choice == '7':
             DisplayAnalyseTable(AnalyseTable, Terminals)
 
 
