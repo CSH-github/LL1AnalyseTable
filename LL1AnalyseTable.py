@@ -291,7 +291,6 @@ if __name__ == "__main__":
             FOLLOW =GetFOLLOW(productions,FIRST)
             Terminals = GetTerminals(productions)
             NonTerminals = GetNonTerminals(productions)
-            AnalyseTable = GetAnalyseTable(productions,FIRST,FOLLOW,Terminals,NonTerminals)
             flag = True
         elif flag == False:
             print("Please input Productions")
@@ -308,6 +307,12 @@ if __name__ == "__main__":
         elif choice == '6':
             DisplayFOLLOW(FOLLOW)
         elif choice == '7':
+            EliminateLeftReduction(productions)
+            print("Eliminate Left Reduction is Done")
+            ExtractLeftFactor(productions)
+            print("Extract Left Common Factors is Done ")
+            AnalyseTable = GetAnalyseTable(productions, FIRST, FOLLOW, Terminals, NonTerminals)
+            print("Generate AnalyseTable Successfully !")
             DisplayAnalyseTable(AnalyseTable, Terminals)
 
 
