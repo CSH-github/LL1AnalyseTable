@@ -75,7 +75,7 @@ def EliminateLeftReduction(productions):
                     if not ("e" in productions[j]):
                         newSet.remove(k)
             productions[i] = newSet
-            EliminateDirectLeftReduction(i,productions)
+        EliminateDirectLeftReduction(i,productions)
         n += 1
 
 # This function is prepared for "EliminateLeftReduction"
@@ -243,20 +243,24 @@ def GetAnalyseTable(productions,FIRST,FOLLOW,Terminals,NonTerminals):
             for k in FIRSTA:                    # k ∈ FIRST(j)
                 if k != "e":
                     ReturnTable[i][k] = {i:j}
+                    assert(k != 'e')
             if "e" in FIRSTA:
                 for k in FOLLOW[i]:
                     ReturnTable[i][k] = {i:j}
+                    assert (k != 'e')
     return ReturnTable
 
 def DisplayAnalyseTable(Table,Terminals):
+    Title = [x for x in Terminals if x != 'e']
     print("\t|",end ="")
-    for i in Terminals:
+    for i in Title:
         print("{0:8}|".format(i),end = "")
     print()
     for V in Table:
         print(V,end = "\t|")
-        for T in Table[V]:
-            #print(Table[V][T],end="\t|")
+        # Use Title to loop to ensure that title is correspond to the productions
+        for T in Title:
+            #print(Table[V][T],end  ="\t|")
             if isinstance(Table[V][T],dict):
                 print("{0:1}->{1:5}|".format(list(Table[V][T].keys())[0],list(Table[V][T].values())[0]),end = "")
             else:
@@ -264,11 +268,19 @@ def DisplayAnalyseTable(Table,Terminals):
 
         print()
 
-if __name__ == "__test__":
-    productions = Getproductions()
+if __name__ != "__main__":
+    productions = {'S': {'^', '(T)', 'a'}, 'T': {'T,S', 'S'}}
+    EliminateLeftReduction(productions)
     ExtractLeftFactor(productions)
+    #ExtractLeftFactor(productions)
     DisplayProductions(productions)
-
+    FIRST = GetFIRST(productions)
+    FOLLOW = GetFOLLOW(productions, FIRST)
+    DisplayFOLLOW(FOLLOW)
+    Terminals = GetTerminals(productions)
+    NonTerminals = GetNonTerminals(productions)
+    AnalyseTable = GetAnalyseTable(productions, FIRST, FOLLOW, Terminals, NonTerminals)
+    DisplayAnalyseTable(AnalyseTable, Terminals)
 
 if __name__ == "__main__":
     choice = 0
@@ -287,10 +299,6 @@ if __name__ == "__main__":
         choice = input("your choice:")
         if choice == '1':
             productions = Getproductions()
-            FIRST = GetFIRST(productions)
-            FOLLOW =GetFOLLOW(productions,FIRST)
-            Terminals = GetTerminals(productions)
-            NonTerminals = GetNonTerminals(productions)
             flag = True
         elif flag == False:
             print("Please input Productions")
@@ -303,16 +311,21 @@ if __name__ == "__main__":
             ExtractLeftFactor(productions)
             DisplayProductions(productions)
         elif choice == '5':
+            FIRST = GetFIRST(productions)
             DisplayFIRST(FIRST)
         elif choice == '6':
+            FIRST = GetFIRST(productions)
+            FOLLOW = GetFOLLOW(productions, FIRST)
             DisplayFOLLOW(FOLLOW)
         elif choice == '7':
+            FIRST = GetFIRST(productions)
+            FOLLOW = GetFOLLOW(productions, FIRST)
+            Terminals = GetTerminals(productions)
+            NonTerminals = GetNonTerminals(productions)
             EliminateLeftReduction(productions)
             print("Eliminate Left Reduction is Done")
             ExtractLeftFactor(productions)
-            print("Extract Left Common Factors is Done ")
+            print("Extract Left Common Factors is Done")
             AnalyseTable = GetAnalyseTable(productions, FIRST, FOLLOW, Terminals, NonTerminals)
             print("Generate AnalyseTable Successfully !")
             DisplayAnalyseTable(AnalyseTable, Terminals)
-
-
