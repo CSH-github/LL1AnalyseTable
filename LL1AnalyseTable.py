@@ -26,10 +26,15 @@ def Getproductions():
         inputSentence = input()
         if inputSentence == "q":
             break
-        productions[inputSentence.split("->")[0].strip()] = set(inputSentence.split("->")[1].strip().split("|"))
+        nonTerminal = inputSentence.split("->")[0].strip()
+        if nonTerminal in productions:
+            productions[nonTerminal].update(set(inputSentence.split("->")[1].strip().split("|")))
+        else:
+            productions[nonTerminal] = set(inputSentence.split("->")[1].strip().split("|"))
     return productions
 
 def DisplayProductions(productions):
+    print("Productions: ")
     for i in productions:
         print(i,end="->")
         for j in productions[i]:
@@ -76,6 +81,8 @@ def EliminateLeftReduction(productions):
                         newSet.remove(k)
             productions[i] = newSet
         EliminateDirectLeftReduction(i,productions)
+        if productions != {'B': {'C', 'bBf'}, 'S': {'B', 'aSf'}, 'C': {'d', 'cCf'}}:
+            print('Hi')
         n += 1
 
 # This function is prepared for "EliminateLeftReduction"
@@ -161,6 +168,7 @@ def GetFIRST(productions):
     return FIRST
 
 def DisplayFIRST(FIRST):
+    print("FIRST: ")
     for i in FIRST:
         print(i,end="\t|")
         for j in FIRST[i]:
@@ -213,13 +221,16 @@ def GetFOLLOW(productions,FIRST):
                     Cwithoute = set(x for x in FIRSTC if x != "e")
                     if Cwithoute.difference(FOLLOW[B]):flag = True
                     FOLLOW[B].update(Cwithoute)
-
+                    if B=="F"and 'a' in Cwithoute:
+                        print(FOLLOW)
+                        print(j)
                     if (not C) or ("e" in FIRSTC):
                         if  FOLLOW[i].difference(FOLLOW[B]):flag =True
                         FOLLOW[B].update(FOLLOW[i])
     return FOLLOW
 
 def DisplayFOLLOW(FOLLOW):
+    print("FOLLOW: ")
     for i in FOLLOW:
         print(i,end="\t|")
         for j in FOLLOW[i]:
@@ -251,7 +262,8 @@ def GetAnalyseTable(productions,FIRST,FOLLOW,Terminals,NonTerminals):
     return ReturnTable
 
 def DisplayAnalyseTable(Table,Terminals):
-    Title = [x for x in Terminals if x != 'e']
+    print("LL1 Analyse Table: ")
+    Title = [x for x in Terminals]# if x != 'e']
     print("\t|",end ="")
     for i in Title:
         print("{0:8}|".format(i),end = "")
@@ -268,21 +280,23 @@ def DisplayAnalyseTable(Table,Terminals):
 
         print()
 
-if __name__ != "__main__":
-    productions = {'S': {'^', '(T)', 'a'}, 'T': {'T,S', 'S'}}
-    EliminateLeftReduction(productions)
-    ExtractLeftFactor(productions)
-    #ExtractLeftFactor(productions)
+if __name__ == "__main__":
+    productions = Getproductions()
     DisplayProductions(productions)
+    EliminateLeftReduction(productions)
+    #DisplayProductions(productions)
+    ExtractLeftFactor(productions)
+    #DisplayProductions(productions)
     FIRST = GetFIRST(productions)
     FOLLOW = GetFOLLOW(productions, FIRST)
-    DisplayFOLLOW(FOLLOW)
+    #DisplayFIRST(FIRST)
+    #DisplayFOLLOW(FOLLOW)
     Terminals = GetTerminals(productions)
     NonTerminals = GetNonTerminals(productions)
     AnalyseTable = GetAnalyseTable(productions, FIRST, FOLLOW, Terminals, NonTerminals)
     DisplayAnalyseTable(AnalyseTable, Terminals)
 
-if __name__ == "__main__":
+if __name__ != "__main__":
     choice = 0
     flag = False
     while choice != '8':
@@ -312,6 +326,7 @@ if __name__ == "__main__":
             DisplayProductions(productions)
         elif choice == '5':
             FIRST = GetFIRST(productions)
+            FIRST = GetFIRST(productions)
             DisplayFIRST(FIRST)
         elif choice == '6':
             FIRST = GetFIRST(productions)
@@ -329,3 +344,4 @@ if __name__ == "__main__":
             AnalyseTable = GetAnalyseTable(productions, FIRST, FOLLOW, Terminals, NonTerminals)
             print("Generate AnalyseTable Successfully !")
             DisplayAnalyseTable(AnalyseTable, Terminals)
+
